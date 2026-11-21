@@ -1,0 +1,22 @@
+{
+  "name": "beauty-deals-api",
+  "version": "1.0.0",
+  "description": "",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/crawl.test.mjs"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "wrangler": "^4.166.0"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.7.3"
+  },
+  "type": "module",
+  "private": true
+}
