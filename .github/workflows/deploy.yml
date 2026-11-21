@@ -43,7 +43,7 @@ jobs:
         working-directory: worker/scrape
         run: |
           pip install -q "scrapling[all]>=0.5.1"
-          python scrape.py scraped.json
+          python scrape.py scraped.json clien ppomppu  # 퀘이사존·올리브영은 GitHub IP가 403 → local.json(로컬 PC 수집)
       - name: Crawl
         working-directory: worker
         env:

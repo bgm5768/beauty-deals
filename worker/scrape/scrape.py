@@ -68,10 +68,12 @@ def oliveyoung():
 if __name__ == "__main__":
     items, status = [], {}
     with StealthySession(headless=True, real_chrome=True) as SESSION:
+        only = sys.argv[2:]  # 예: quasarzone oliveyoung (로컬 PC 전용 수집)
         for name, fn in [("clien", clien), ("quasarzone", quasarzone), ("ppomppu", ppomppu), ("oliveyoung", oliveyoung)]:
+            if only and name not in only: continue
             try:
                 r = fn(); items += r; status[name] = len(r)
             except Exception as e:
                 status[name] = f"ERR {str(e)[:100]}"
     print(status)
-    json.dump(dict(scrapedAt=now, items=items), open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(dict(items=items), open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)

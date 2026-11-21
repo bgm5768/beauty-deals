@@ -14,7 +14,9 @@ const env = {
   },
 };
 let scraped = [];
-try { scraped = JSON.parse(readFileSync(new URL("../scrape/scraped.json", import.meta.url), "utf8")).items; } catch { console.warn("scraped.json 없음 (브라우저 수집 생략)"); }
+for (const f of ["scraped.json", "local.json"]) { // local.json: 로컬 PC가 수집해 커밋한 퀘이사존·올리브영
+  try { scraped.push(...JSON.parse(readFileSync(new URL("../scrape/" + f, import.meta.url), "utf8")).items); } catch { console.warn(f + " 없음"); }
+}
 const data = await crawl(env, fetch, scraped);
 console.log(data.sources, data.items.length);
 if (!data.items.length && !data.sources.some((s) => s.ok)) { console.error("모든 소스 실패"); process.exit(1); }
