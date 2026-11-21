@@ -2,15 +2,20 @@
 사용: python scrape.py out.json   (크롬 필요: 로컬은 real_chrome, CI는 설치된 chrome)"""
 import json, re, sys, datetime as dt
 from urllib.parse import urljoin
-from scrapling.fetchers import StealthyFetcher
+from scrapling.fetchers import StealthySession
 
 KW = "?page="  # 다중 페이지 필요 시 확장
 now = dt.datetime.now(dt.timezone.utc).isoformat()
 
-def fetch(url):
-    return StealthyFetcher.fetch(url, headless=True, real_chrome=True, network_idle=True, timeout=90000)
+SESSION = None  # 브라우저 하나를 재사용해 페이지당 기동 시간을 아낀다
 
-def clien(pages=3):
+def fetch(url):
+    p = SESSION.fetch(url, network_idle=True, timeout=40000)
+    if p.status >= 400:  # 차단(403 등)이면 바로 포기해서 CI 시간을 아낀다
+        raise RuntimeError(f"HTTP {p.status} {url}")
+    return p
+
+def clien(pages=2):
     out = []
     for n in range(pages):
         p = fetch(f"https://www.clien.net/service/board/jirum?po={n}")
@@ -33,7 +38,7 @@ def quasarzone(pages=2):
             out.append(dict(source="quasarzone", title=title, link=urljoin("https://quasarzone.com", a.attrib["href"].split("?")[0]), date=None, image=None))
     return out
 
-def ppomppu(boards=("ppomppu", "ppomppu4"), pages=2):
+def ppomppu(boards=("ppomppu",), pages=2):
     out = []
     for b in boards:
         for n in range(1, pages + 1):
@@ -62,10 +67,11 @@ def oliveyoung():
 
 if __name__ == "__main__":
     items, status = [], {}
-    for name, fn in [("clien", clien), ("quasarzone", quasarzone), ("ppomppu", ppomppu), ("oliveyoung", oliveyoung)]:
-        try:
-            r = fn(); items += r; status[name] = len(r)
-        except Exception as e:
-            status[name] = f"ERR {str(e)[:100]}"
+    with StealthySession(headless=True, real_chrome=True) as SESSION:
+        for name, fn in [("clien", clien), ("quasarzone", quasarzone), ("ppomppu", ppomppu), ("oliveyoung", oliveyoung)]:
+            try:
+                r = fn(); items += r; status[name] = len(r)
+            except Exception as e:
+                status[name] = f"ERR {str(e)[:100]}"
     print(status)
     json.dump(dict(scrapedAt=now, items=items), open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False)
