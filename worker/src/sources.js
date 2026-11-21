@@ -8,11 +8,7 @@ const NEWS_QUERIES = [
   ["news-daiso", "다이소 뷰티", "다이소 화장품", true],
   ["news-1plus1", "1+1·증정", "화장품 1+1", true],
   ["news-gift", "사은품·기획세트", "화장품 사은품", true],
-  ["news-set", "기획세트", "뷰티 기획세트", true],
-  ["news-popup", "팝업스토어", "뷰티 팝업스토어", true],
-  ["news-sample", "샘플링·체험", "화장품 샘플링", true],
   ["news-bf", "블랙프라이데이", "블랙프라이데이 화장품", true],
-  ["news-award", "올영 어워즈", "올리브영 어워즈", false],
   ["news-oyevent", "올리브영 이벤트", "올리브영 이벤트", false],
   ["news-sulwhasoo", "설화수·럭셔리", "설화수 증정", true],
 ];

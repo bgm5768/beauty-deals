@@ -61,3 +61,11 @@ export function extractMeta(title) {
   const free = /무료\s*배송|\/\s*무료|무배/.test(title);
   return { store, price, freeShipping: free };
 }
+
+// 뉴스 소스용: 실제 "특가·이벤트" 소식만 남긴다 (주가·실적·르포 같은 일반 기사 제외)
+const PROMO = ["이벤트", "세일", "증정", "사은품", "할인", "특가", "쿠폰", "1+1", "2+1", "기획전", "페스타", "프로모션", "딜"];
+const NEWS_NOISE = ["레퍼런스북", "협력광고", "광고주", "해외", "미국", "일본", "유럽", "파리", "도쿄", "대만", "말레이", "뉴저지", "달라스", "la서", "런던", "중국", "글로벌", "k패션", "혜리", "배우", "방문", "전쟁", "신흥강자", "주가", "급등", "급락", "코스피", "코스닥", "수출", "실적", "영업이익", "매출", "상장", "인수", "협약", "mou", "임명", "인사", "르포", "컨퍼런스", "어워즈", "어워드", "수상", "입점", "출시", "신상품", "화장품주", "소송", "리콜", "한중", "fta", "ipo", "투자"];
+export function isPromoNews(title) {
+  const t = title.toLowerCase();
+  return isBeauty(title) && PROMO.some((w) => t.includes(w)) && !NEWS_NOISE.some((w) => t.includes(w));
+}

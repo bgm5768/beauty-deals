@@ -1,7 +1,7 @@
 import iconv from "iconv-lite";
 import { SOURCES } from "./sources.js";
 import { parseFeed } from "./rss.js";
-import { isBeauty, categorize, looksLikeEvent, extractMeta } from "./classify.js";
+import { isBeauty, isPromoNews, categorize, looksLikeEvent, extractMeta } from "./classify.js";
 
 const KV_KEY = "deals:v1";
 const KEEP_DAYS = 7;
@@ -61,7 +61,9 @@ export async function crawl(env, fetcher = fetch) {
   });
 
   // 기존 데이터와 병합 (링크 기준 중복 제거, 오래된 것 정리)
-  const byId = new Map(prev.items.map((it) => [it.id, it]));
+  const srcById = new Map(SOURCES.map((s) => [s.id, s]));
+  const keep = (it) => { const s = srcById.get(it.source); return s && (s.kind !== "event" || isPromoNews(it.title)); };
+  const byId = new Map(prev.items.filter(keep).map((it) => [it.id, it]));
   for (const it of fresh) {
     const old = byId.get(it.id);
     byId.set(it.id, old ? { ...old, ...it, firstSeen: old.firstSeen } : it);
@@ -87,7 +89,7 @@ async function crawlSource(src, fetcher) {
   const now = new Date().toISOString();
 
   return parseFeed(xml)
-    .filter((it) => !src.filter || isBeauty(it.title))
+    .filter((it) => (src.kind === "event" ? isPromoNews(it.title) : !src.filter || isBeauty(it.title)))
     .map((it) => {
       const meta = extractMeta(it.title);
       // 이벤트 소스는 이벤트, 핫딜 게시판 글은 가격 없이 이벤트성 단어만 있으면 이벤트로 분류
