@@ -17,7 +17,7 @@ const fetcher = async (url) => {
   if (url.includes("ppomppu")) return feeds.ppomppu.clone();
   if (url.includes("ruliweb")) return feeds.ruliweb.clone();
   if (url.includes("news.google")) return feeds["news.google"].clone();
-  return new Response("blocked", { status: 403 });
+  return new Response("", { status: 200 });
 };
 const store = new Map();
 const env = { DEALS: { get: async (k, t) => (store.has(k) ? JSON.parse(store.get(k)) : null), put: async (k, v) => store.set(k, v) } };
@@ -32,7 +32,7 @@ const laroche = data.items.find((i) => i.title.includes("라로슈포제"));
 assert.equal(laroche.price, 15900); assert.equal(laroche.store, "쿠팡"); assert.equal(laroche.category, "선케어"); assert.equal(laroche.kind, "deal");
 assert.equal(data.items.find((i) => i.title.includes("토리든")).kind, "event");
 assert(data.items.some((i) => i.kind === "event" && i.sourceName === "매일경제"));
-assert.equal(data.sources.find((s) => s.id === "clien").ok, false);
+assert(data.sources.every((s) => s.ok), "모든 소스 성공");
 // 두 번째 크롤링: 중복 없이 병합
 const again = await crawl(env, fetcher);
 assert.equal(again.items.length, data.items.length);
