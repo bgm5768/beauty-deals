@@ -10,4 +10,4 @@ crons = ["*/30 * * * *"]
 # id는 GitHub Actions가 배포할 때 자동으로 채워 넣습니다 (scripts/ensure-kv.sh)
 [[kv_namespaces]]
 binding = "DEALS"
-id = "__KV_ID__"
+id = "f28fd0824da04b829fd241a63c541b08"

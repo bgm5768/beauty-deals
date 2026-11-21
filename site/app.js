@@ -1,5 +1,5 @@
 (() => {
-  const API = (window.API_BASE || "").replace(/\/$/, "") + "/api/deals";
+  const API = "data.json";
   const CAT_ICON = { 스킨케어: "🧴", 선케어: "☀️", 메이크업: "💄", "헤어·바디": "🫧", 향수: "🌸", 남성: "🪒", 기타: "🛍️" };
   const $ = (id) => document.getElementById(id);
 

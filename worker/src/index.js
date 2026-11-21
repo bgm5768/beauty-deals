@@ -28,6 +28,11 @@ export default {
       return json({ ok: true, count: data.items.length, sources: data.sources });
     }
 
+    if (url.pathname === "/api/diag") {
+      const { runDiag } = await import("./diag.js");
+      return json(await runDiag());
+    }
+
     if (url.pathname === "/" || url.pathname === "/api/health") {
       return json({ ok: true, endpoints: ["/api/deals"] });
     }
@@ -102,6 +107,38 @@ async function crawlSource(src, fetcher) {
         ...meta,
       };
     });
+}
+
+async function probe(target) {
+  const CHROME =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  const variants = {
+    bot: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+    chrome: {
+      "User-Agent": CHROME,
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+    },
+    chromeNoAccept: { "User-Agent": CHROME },
+    default: {},
+  };
+  const out = {};
+  for (const [name, h] of Object.entries(variants)) {
+    try {
+      const res = await fetch(target, { headers: h });
+      const buf = await res.arrayBuffer();
+      out[name] = {
+        status: res.status,
+        bytes: buf.byteLength,
+        ct: res.headers.get("content-type"),
+        enc: res.headers.get("content-encoding"),
+        head: new TextDecoder().decode(buf.slice(0, 90)).replace(/\s+/g, " "),
+      };
+    } catch (e) {
+      out[name] = { error: String(e.message || e).slice(0, 160) };
+    }
+  }
+  return out;
 }
 
 // 뽐뿌처럼 EUC-KR로 내려오는 피드 처리
