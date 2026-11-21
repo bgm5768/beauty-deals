@@ -14,13 +14,11 @@ const NEWS_QUERIES = [
 ];
 
 export const SOURCES = [
-  {
-    id: "ppomppu",
-    name: "뽐뿌",
-    kind: "deal",
-    url: "https://www.ppomppu.co.kr/rss.php?id=ppomppu",
-    filter: true,
-  },
+  // 아래 4개는 RSS가 막혀 있어 worker/scrape/scrape.py(scrapling 브라우저)가 수집한다
+  { id: "ppomppu", name: "뽐뿌", kind: "deal", scrape: true, filter: true },
+  { id: "clien", name: "클리앙", kind: "deal", scrape: true, filter: true },
+  { id: "quasarzone", name: "퀘이사존", kind: "deal", scrape: true, filter: true },
+  { id: "oliveyoung", name: "올리브영 이벤트", kind: "event", scrape: true, filter: false },
   {
     id: "ruliweb",
     name: "루리웹",

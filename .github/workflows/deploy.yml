@@ -33,6 +33,16 @@ jobs:
         working-directory: worker
       - run: npm test
         working-directory: worker
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # RSS가 막힌 사이트(뽐뿌·클리앙·퀘이사존·올리브영)는 scrapling 브라우저로 수집. 실패해도 나머지는 계속 진행.
+      - name: Scrape with browser
+        continue-on-error: true
+        working-directory: worker/scrape
+        run: |
+          pip install -q "scrapling[all]>=0.5.1"
+          python scrape.py scraped.json
       - name: Crawl
         working-directory: worker
         env:

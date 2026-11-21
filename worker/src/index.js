@@ -44,9 +44,9 @@ export default {
   },
 };
 
-export async function crawl(env, fetcher = fetch) {
+export async function crawl(env, fetcher = fetch, scraped = []) {
   const prev = (await env.DEALS.get(KV_KEY, "json")) || { items: [] };
-  const results = await Promise.allSettled(SOURCES.map((s) => crawlSource(s, fetcher)));
+  const results = await Promise.allSettled(SOURCES.map((s) => crawlSource(s, fetcher, scraped)));
 
   const sources = [];
   const fresh = [];
@@ -62,7 +62,7 @@ export async function crawl(env, fetcher = fetch) {
 
   // 기존 데이터와 병합 (링크 기준 중복 제거, 오래된 것 정리)
   const srcById = new Map(SOURCES.map((s) => [s.id, s]));
-  const keep = (it) => { const s = srcById.get(it.source); return s && (s.kind !== "event" || isPromoNews(it.title)); };
+  const keep = (it) => { const s = srcById.get(it.source); return s && (s.kind !== "event" || s.scrape || isPromoNews(it.title)); };
   const byId = new Map(prev.items.filter(keep).map((it) => [it.id, it]));
   for (const it of fresh) {
     const old = byId.get(it.id);
@@ -79,17 +79,23 @@ export async function crawl(env, fetcher = fetch) {
   return data;
 }
 
-async function crawlSource(src, fetcher) {
+async function crawlSource(src, fetcher, scraped) {
+  const now = new Date().toISOString();
+  // scrape: scrapling 브라우저가 미리 수집한 항목(RSS가 막힌 사이트)
+  if (src.scrape) return build(src, scraped.filter((it) => it.source === src.id), now);
   const res = await fetcher(src.url, {
     headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
     cf: { cacheTtl: 300 },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const xml = decode(await res.arrayBuffer(), res.headers.get("content-type"));
-  const now = new Date().toISOString();
+  return build(src, parseFeed(xml), now);
+}
 
-  return parseFeed(xml)
-    .filter((it) => (src.kind === "event" ? isPromoNews(it.title) : !src.filter || isBeauty(it.title)))
+function build(src, items, now) {
+  const ok = (t) => (src.kind === "event" && !src.scrape ? isPromoNews(t) : !src.filter || isBeauty(t));
+  return items
+    .filter((it) => ok(it.title))
     .map((it) => {
       const meta = extractMeta(it.title);
       // 이벤트 소스는 이벤트, 핫딜 게시판 글은 가격 없이 이벤트성 단어만 있으면 이벤트로 분류
